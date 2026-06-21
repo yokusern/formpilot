@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server'
-import Stripe from 'stripe'
-import { getAdminAuth } from '@/lib/firebaseAdmin'
+import { stripe, PRO_PRICE_ID, APP_URL } from '@/lib/stripe'
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2025-02-24.acacia' as const,
-})
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   const token = (req.headers.get('authorization') || '').replace('Bearer ', '')
@@ -19,16 +17,22 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: '認証エラー' }, { status: 401 })
   }
 
-  const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://formpilot.vercel.app'
+  const db = getAdminDb()
+  const userDoc = await db.collection('fp_users').doc(uid).get()
+  const existingCustomerId = userDoc.data()?.stripeCustomerId as string | undefined
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
-    line_items: [{ price: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID, quantity: 1 }],
-    customer_email: email,
-    success_url: `${origin}/settings?success=1`,
-    cancel_url: `${origin}/settings`,
+    line_items: [{ price: PRO_PRICE_ID, quantity: 1 }],
+    ...(existingCustomerId
+      ? { customer: existingCustomerId }
+      : { customer_email: email }),
+    success_url: `${APP_URL}/settings?success=1`,
+    cancel_url: `${APP_URL}/settings`,
+    locale: 'ja',
     metadata: { uid },
+    subscription_data: { metadata: { uid } },
   })
 
   return Response.json({ url: session.url })

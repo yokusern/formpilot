@@ -9,17 +9,18 @@ function SettingsContent() {
   const success = params.get('success') === '1'
   const isPro = profile?.plan === 'pro'
   const [loading, setLoading] = useState(false)
+  const [managing, setManaging] = useState(false)
   const [error, setError] = useState('')
 
-  const checkout = async () => {
+  const callStripeApi = async (endpoint: string, setter: (v: boolean) => void) => {
     if (!user) return
-    setLoading(true)
+    setter(true)
     setError('')
     try {
       const token = await user.getIdToken()
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch(`/api/stripe/${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       })
       const j = await res.json()
       if (j.url) window.location.href = j.url
@@ -27,7 +28,7 @@ function SettingsContent() {
     } catch {
       setError('ネットワークエラー')
     } finally {
-      setLoading(false)
+      setter(false)
     }
   }
 
@@ -39,13 +40,21 @@ function SettingsContent() {
         </div>
       )}
 
-      {/* Current plan */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
         <h2 className="text-sm font-semibold text-white mb-4">現在のプラン</h2>
         {isPro ? (
-          <div className="flex items-center gap-3">
-            <span className="bg-teal-500/20 text-teal-400 px-3 py-1.5 rounded-lg text-sm font-semibold">✓ Pro</span>
-            <span className="text-slate-400 text-sm">無制限生成 · 履歴 · テンプレート</span>
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="bg-teal-500/20 text-teal-400 px-3 py-1.5 rounded-lg text-sm font-semibold">✓ Pro</span>
+              <span className="text-slate-400 text-sm">無制限生成 · 履歴 · テンプレート</span>
+            </div>
+            <button
+              onClick={() => callStripeApi('portal', setManaging)}
+              disabled={managing}
+              className="w-full py-2.5 border border-slate-600 hover:border-teal-500 text-slate-300 hover:text-teal-400 text-sm rounded-xl transition-colors disabled:opacity-40"
+            >
+              {managing ? '処理中...' : 'プランを管理（キャンセル・更新）'}
+            </button>
           </div>
         ) : (
           <div>
@@ -54,11 +63,11 @@ function SettingsContent() {
               <span className="text-slate-400 text-sm">月5件まで生成可能</span>
             </div>
             <button
-              onClick={checkout}
+              onClick={() => callStripeApi('checkout', setLoading)}
               disabled={loading}
               className="w-full py-3 bg-teal-500 hover:bg-teal-400 disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
-              {loading ? '処理中...' : 'Proにアップグレード — ¥500/月'}
+              {loading ? '処理中...' : 'Proにアップグレード — ¥980/月'}
             </button>
             {error && <p className="mt-2 text-red-400 text-xs">{error}</p>}
             <div className="mt-4 space-y-2">
@@ -74,7 +83,6 @@ function SettingsContent() {
         )}
       </div>
 
-      {/* Account info */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
         <h2 className="text-sm font-semibold text-white mb-4">アカウント</h2>
         <div className="space-y-2 text-sm text-slate-400">
