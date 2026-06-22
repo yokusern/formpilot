@@ -16,7 +16,7 @@ export default function PlanGate({ isPro, children }: { isPro: boolean; children
             href="/settings"
             className="inline-block bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
           >
-            Proにアップグレード — ¥500/月
+            Proにアップグレード — ¥980/月
           </Link>
         </div>
       </div>
