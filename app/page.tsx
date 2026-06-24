@@ -50,12 +50,12 @@ export default function LoginPage() {
               <span className="text-teal-400">Form</span>
               <span className="text-white">Pilot</span>
             </h1>
-            <p className="text-slate-400 text-sm">案件URLを貼るだけで、採用される提案文をAIが生成</p>
+            <p className="text-slate-400 text-sm">案件URLを貼るだけで、案件に合わせた提案文をAIが生成</p>
           </div>
 
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {['3秒で完成', 'ランサーズ対応', 'ココナラ対応', '月5件無料'].map(t => (
+            {['URLを貼るだけ', 'ランサーズ対応', 'ココナラ対応', '月5件無料'].map(t => (
               <span key={t} className="text-xs bg-slate-800 text-teal-400 border border-slate-700 px-3 py-1 rounded-full">
                 {t}
               </span>
